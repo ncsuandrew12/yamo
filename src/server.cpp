@@ -12,8 +12,8 @@
 #include "common/Entity.hpp"
 
 // Yamo database
-#include "database/database.hpp"
-#include "database/schema.hpp"
+#include "database/Database.hpp"
+#include "database/YamoSchema.hpp"
 
 // Yamo includes
 

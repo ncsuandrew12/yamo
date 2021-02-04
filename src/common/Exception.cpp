@@ -12,6 +12,12 @@
 
 namespace Yamo {
 
+std::ostream& operator<<(std::ostream& os, const Exception& e)
+{
+    e.printMsg(os);
+    return e.printTrace(os);
+}
+
 const char* Exception::what() const throw()
 {
     return mMsg.c_str();

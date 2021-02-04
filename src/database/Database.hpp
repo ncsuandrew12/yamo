@@ -11,7 +11,7 @@
 #include <pqxx/pqxx>
 
 // Yamo includes
-#include "schema.hpp"
+#include "YamoSchema.hpp"
 
 namespace Yamo {
 

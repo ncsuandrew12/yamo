@@ -1,5 +1,5 @@
 // Header
-#include "database.hpp"
+#include "Database.hpp"
 
 // Standard includes
 #include <iostream>

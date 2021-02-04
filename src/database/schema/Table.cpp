@@ -1,17 +1,35 @@
 // Header
-#include "schema.hpp"
+#include "Table.hpp"
 
 // Standard includes
 
 // Third-party includes
 
 // Yamo includes
+#include "RefField.hpp"
 
 namespace Yamo {
 
-const FieldType YamoSchema::kKey = FieldType(FieldYamoType::KEY, FieldPgType::SERIAL, FieldBaseType::LONG);
-const FieldType YamoSchema::kReference = FieldType(FieldYamoType::REFERENCE, FieldPgType::SERIAL, FieldBaseType::LONG);
-const FieldType YamoSchema::kShortString = FieldType(FieldYamoType::VARCHAR128, FieldPgType::VARCHAR128, FieldBaseType::STRING);
+std::ostream& operator<<(std::ostream& os, const Table& t)
+{
+    os << "  Table: " << t.mName << "(" << t.mPrimaryKey->mName << ")" << std::endl << *(t.mPrimaryKey) << std::endl;
+    for (boost::shared_ptr<RefField> field : t.mReferences) {
+        os << *field;
+        if (field != t.mReferences.back() || !t.mFields.empty()) {
+            os << std::endl;
+        }
+    }
+    for (boost::shared_ptr<Field> field : t.mFields) {
+        if (field == t.mPrimaryKey) {
+            continue;
+        }
+        os << *field;
+        if (field != t.mFields.back()) {
+            os << std::endl;
+        }
+    }
+    return os;
+}
 
 std::string Table::SerializeSQLCreate() const {
     std::string sql = "CREATE TABLE " + mName + "(" + mPrimaryKey->SerializeSQLCreate() + " PRIMARY KEY";
@@ -29,7 +47,6 @@ std::string Table::SerializeSQLCreate() const {
     return sql + ")";
 }
 
-        // "INSERT INTO entities(firstName, lastName) VALUES ('Andrew', 'Felsher'), ('Mayra', 'Felsher')"
 std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const {
     std::string sql = "INSERT INTO " + mName + "(";
     bool first = true;
@@ -92,27 +109,6 @@ std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>
         sql = sql + ")";
     }
     return sql;
-}
-
-std::ostream& operator<<(std::ostream& os, const Table& t)
-{
-    os << "  Table: " << t.mName << "(" << t.mPrimaryKey->mName << ")" << std::endl << *(t.mPrimaryKey) << std::endl;
-    for (boost::shared_ptr<RefField> field : t.mReferences) {
-        os << *field;
-        if (field != t.mReferences.back() || !t.mFields.empty()) {
-            os << std::endl;
-        }
-    }
-    for (boost::shared_ptr<Field> field : t.mFields) {
-        if (field == t.mPrimaryKey) {
-            continue;
-        }
-        os << *field;
-        if (field != t.mFields.back()) {
-            os << std::endl;
-        }
-    }
-    return os;
 }
 
 }

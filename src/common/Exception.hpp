@@ -18,6 +18,8 @@ namespace Yamo {
 
 class Exception : public std::exception
 {
+    friend std::ostream& operator<<(std::ostream& os, const Exception& e);
+
 public:
     const std::string mMsg;
     const std::exception mEx;
@@ -36,13 +38,6 @@ public:
         std::exception(),
         mMsg(msg)
     {}
-
-    friend std::ostream& operator<<(std::ostream& os, const Exception& e)
-    {
-        e.printMsg(os);
-        e.printTrace(os);
-        return os;
-    }
 
     const char* what() const throw() override;
 
