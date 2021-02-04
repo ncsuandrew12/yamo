@@ -1,8 +1,10 @@
 
 {
-    "server": "localhost",
-    "serverType": "postgresql",
-    "user": "afelsher",
-    "password": "",
-    "schema": "yamo"
+    "database": {
+        "server": "localhost",
+        "serverType": "postgresql",
+        "user": "afelsher",
+        "password": "",
+        "schema": "yamo"
+    }
 }

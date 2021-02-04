@@ -32,29 +32,23 @@ int main(int argc, char **argv) {
                 file.close();
             }
         }
+
         json config;
         try {
             config = json::parse(configData);
-            // R"(
-            //     {
-            //         "server": "localhost",
-            //         "serverType": "postgresql",
-            //         "user": "afelsher",
-            //         "password": "thatsnomoon",
-            //         "schema": "yamo"
-            //     }
-            // )"_json;
         } catch (const json::exception& e) {
             throw_with_trace(JsonException{"Error parsing config.", e});
         }
 
-        std::string server = config["server"];
-        std::string serverType = config["serverType"];
-        std::string user = config["user"];
-        std::string password = config["password"];
-        std::string schema = config["schema"];
+        json databaseConfig = config["database"];
+        std::string server = databaseConfig["server"];
+        std::string serverType = databaseConfig["serverType"];
+        std::string user = databaseConfig["user"];
+        Secret password = databaseConfig["password"];
+        std::string schema = databaseConfig["schema"];
+
         Database db;
-        db.connect(serverType + "://" + user + ":" + password + "@" + server + "/" + schema);
+        db.connect(serverType, server, user, password, schema);
         db.clear();
         db.setup();
 
@@ -81,7 +75,7 @@ int main(int argc, char **argv) {
         std::list<boost::shared_ptr<Entity>> entities{db.queryEntities()};
 
         for (boost::shared_ptr<Entity> entity : entities) {
-            // std::cout << *entity;
+            std::cout << *entity;
         }
     }
     catch (Exception const &e)

@@ -26,7 +26,11 @@ private:
     const YamoSchema mSchema;
 
 public:
-    void connect(const std::string& connection);
+    void connect(const std::string& serverType,
+                 const std::string& server,
+                 const std::string& user,
+                 const Secret& password,
+                 const std::string& schema);
     void clear();
     void setup();
     void populate(const std::map<std::string, std::vector<std::vector<std::string>>>& data);

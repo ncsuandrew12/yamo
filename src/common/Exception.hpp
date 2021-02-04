@@ -12,18 +12,9 @@
 // Third-party includes
 
 // Yamo includes
+#include "exceptions.hpp"
 
 namespace Yamo {
-
-// Forwards
-class JsonException;
-
-typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
-
-template <class E>
-void throw_with_trace(const E& e) {
-    throw boost::enable_error_info(e) << traced(boost::stacktrace::stacktrace());
-}
 
 class Exception : public std::exception
 {

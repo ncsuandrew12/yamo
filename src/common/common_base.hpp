@@ -15,6 +15,8 @@ namespace Yamo {
 
 #define LINE_INFO __FUNCTION__ << "(" << __FILE__ << ":" << __LINE__ << ")"
 
+typedef std::string Secret; // TODO Make non-dumpable and zeroize
+
 // template<typename T>
 // const std::string getClassName(T) {
 //     int status;

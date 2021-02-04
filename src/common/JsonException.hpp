@@ -10,7 +10,7 @@
 #include "nlohmann/json.hpp"
 
 // Yamo includes
-#include "Exception.hpp"
+#include "exceptions.hpp"
 
 namespace Yamo {
 

@@ -7,7 +7,7 @@
 
 // Yamo includes
 #include "common_base.hpp"
-#include "Exception.hpp"
+#include "exceptions.hpp"
 
 namespace Yamo {
 

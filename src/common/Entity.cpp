@@ -6,7 +6,7 @@
 // Third-party includes
 
 // Yamo includes
-#include "Exception.hpp"
+#include "exceptions.hpp"
 
 namespace Yamo {
 

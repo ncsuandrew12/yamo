@@ -14,9 +14,14 @@
 
 namespace Yamo {
 
-void Database::connect(const std::string& connection) {
+void Database::connect(const std::string& serverType,
+                       const std::string& server,
+                       const std::string& user,
+                       const Secret& password,
+                       const std::string& schema) {
     try {
-        mConnection = boost::make_shared<pqxx::connection>(connection);
+        mConnection = boost::make_shared<pqxx::connection>(serverType + "://" + user + ":" + password + "@" + server +
+                                                           "/" + schema);
     } catch (const std::exception& e) { // Add catches for all pqxx error types
         throw_with_trace(Exception{"Error connecting to database.", e});
     }
