@@ -17,8 +17,9 @@ class Entity;
 
 class DBException : public Exception {
 public:
-    DBException(const std::string& msg, const std::exception& e) :
-        Exception(msg, e)
+    template<typename... Args>
+    DBException(const std::exception& e, const std::string& format, Args... args) :
+        Exception(e, format, args...)
     {}
 };
 

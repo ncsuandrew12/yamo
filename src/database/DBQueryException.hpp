@@ -23,8 +23,10 @@ private:
     pqxx::sql_error mSqlError;
 
 public:
-    DBQueryException(const std::string& msg, const pqxx::sql_error& e) :
-        DBException(msg, e),
+
+    template<typename... Args>
+    DBQueryException(const pqxx::sql_error& e, const std::string& format, Args... args) :
+        DBException(e, format, args...),
         mSqlError(e)
     {}
 

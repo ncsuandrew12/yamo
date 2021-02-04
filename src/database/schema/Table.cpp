@@ -48,7 +48,7 @@ std::string Table::SerializeSQLCreate() const {
 }
 
 std::string Table::SerializeSQLDrop() const {
-    return format("DROP TABLE IF EXISTS %s;", mName.c_str());
+    return stringFormat("DROP TABLE IF EXISTS %s;", mName.c_str());
 }
 
 std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const {
@@ -83,9 +83,9 @@ std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>
         }
 
         if (mReferences.size() + mFields.size() - 1 != rowData.size()) {
-            throw_with_trace(Exception{format("Wrong length of field entries (%d, expected %d)",
-                                              rowData.size(),
-                                              mReferences.size() + mFields.size() - 1)});
+            throw_with_trace(Exception{"Wrong length of field entries (%d, expected %d)",
+                                       rowData.size(),
+                                       mReferences.size() + mFields.size() - 1});
         }
 
         sql = sql + "(";

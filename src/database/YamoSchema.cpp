@@ -86,7 +86,7 @@ YamoSchema::YamoSchema(const json& schema) {
             mTablesVector.emplace_back(mTables[tableName]);
         }
     } catch (const json::exception& e) {
-        throw_with_trace(JsonException{"Error parsing schema.", e});
+        throw_with_trace(JsonException{e, "Error parsing schema."});
     }
 }
 

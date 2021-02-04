@@ -24,19 +24,32 @@ public:
     const std::string mMsg;
     const std::exception mEx;
 
-    Exception(const std::exception& e) :
-        Exception(e.what(), e)
-    {}
-
-    Exception(const std::string& msg, const std::exception& e) :
-        std::exception(e),
-        mMsg(msg),
-        mEx(e)
-    {}
-
     Exception(const std::string& msg) :
-        std::exception(),
-        mMsg(msg)
+        Exception(std::exception{}, msg)
+    {}
+
+    template<typename... Args>
+    Exception(const std::string& format, Args... args) :
+        Exception(std::exception{}, format, args...)
+    {}
+
+    Exception(const std::exception& e) :
+        Exception(e, e.what())
+    {}
+
+    Exception(const std::exception& e, const std::string& msg) :
+        Exception(e, msg.c_str())
+    {}
+
+    Exception(const std::exception& e, const char* msg) :
+        Exception(e, "%s", msg)
+    {}
+
+    template<typename... Args>
+    Exception(const std::exception& e, const std::string& format, Args... args) :
+        std::exception(e),
+        mMsg(stringFormat(format, args...)),
+        mEx(e)
     {}
 
     const char* what() const throw() override;

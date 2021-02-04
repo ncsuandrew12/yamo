@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
                 std::ifstream file("cfg/config.json");
                 file >> config;
             } catch (const json::exception& e) {
-                throw_with_trace(JsonException{"Error parsing config.", e});
+                throw_with_trace(JsonException{e, "Error parsing config."});
             }
         }
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
                 std::ifstream file("data/schema.json");
                 file >> schemaJson;
             } catch (const json::exception& e) {
-                throw_with_trace(JsonException{"Error parsing schema.", e});
+                throw_with_trace(JsonException{e, "Error parsing schema."});
             }
         }
 

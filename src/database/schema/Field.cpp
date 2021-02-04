@@ -41,7 +41,7 @@ std::string Field::SerializeSQLCreate() {
             sql = sql + "varchar(128)";
             break;
         default:
-            throw_with_trace(Exception{format("Unimplemented enum value %d", mType.mPgType)});
+            throw_with_trace(Exception{"Unimplemented enum value %d", mType.mPgType});
             break;
     }
     return sql;
@@ -61,7 +61,7 @@ std::string Field::SerializeSQLInsertData(const std::string& data) {
             sql = "'" + data + "'";
             break;
         default:
-            throw_with_trace(Exception{format("Unimplemented enum value %d", mType.mBaseType)});
+            throw_with_trace(Exception{"Unimplemented enum value %d", mType.mBaseType});
             break;
     }
     return sql;

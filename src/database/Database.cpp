@@ -27,14 +27,18 @@ Database::Config::Config(const json& config) {
 
 void Database::connect(const Config& config) {
     try {
-        mConnection = boost::make_shared<pqxx::connection>(format("%s://%s:%s@%s/%s",
-                                                                  config.mServerType.c_str(),
-                                                                  config.mUser.c_str(),
-                                                                  config.mPassword.c_str(),
-                                                                  config.mServer.c_str(),
-                                                                  config.mSchemaName.c_str()));
+        mConnection = boost::make_shared<pqxx::connection>(stringFormat("%s://%s:%s@%s/%s",
+                                                                        config.mServerType.c_str(),
+                                                                        config.mUser.c_str(),
+                                                                        config.mPassword.c_str(),
+                                                                        config.mServer.c_str(),
+                                                                        config.mSchemaName.c_str()));
     } catch (const std::exception& e) { // Add catches for all pqxx error types
-        throw_with_trace(Exception{"Error connecting to database.", e});
+        throw_with_trace(Exception{e, "Error connecting to database: %s://%s@%s/%s",
+                                       config.mServerType.c_str(),
+                                       config.mUser.c_str(),
+                                       config.mServer.c_str(),
+                                       config.mSchemaName.c_str()});
     }
 }
 
@@ -50,13 +54,13 @@ void Database::clear()
                 txn.exec(table->SerializeSQLDrop().c_str());
             }
             catch (pqxx::sql_error const &e) {
-                throw_with_trace(DBQueryException{format("Error dropping table: %s", table->mName.c_str()), e});
+                throw_with_trace(DBQueryException{e, "Error dropping table: %s", table->mName.c_str()});
             }
         }
         txn.commit();
     }
     catch (pqxx::sql_error const &e) {
-        throw_with_trace(DBQueryException{"Error dropping tables from DB", e});
+        throw_with_trace(DBQueryException{e, "Error dropping tables from DB"});
     }
 }
 
@@ -69,14 +73,14 @@ void Database::setup()
                 txn.exec(table->SerializeSQLCreate().c_str());
             }
             catch (pqxx::sql_error const &e) {
-                throw_with_trace(DBQueryException{format("Error creating table: %s", table->mName.c_str()), e});
+                throw_with_trace(DBQueryException{e, "Error creating table: %s", table->mName.c_str()});
             }
         }
         txn.commit();
     }
     catch (pqxx::sql_error const &e)
     {
-        throw_with_trace(DBQueryException{"Error setting up DB", e});
+        throw_with_trace(DBQueryException{e, "Error setting up DB"});
     }
 }
 
@@ -90,14 +94,14 @@ void Database::populate(const std::map<std::string, std::vector<std::vector<std:
                     table->SerializeSQLInsert(std::vector<std::vector<std::string>>({data.at(table->mName)})).c_str());
             }
             catch (pqxx::sql_error const &e) {
-                throw_with_trace(DBQueryException{format("Error populating table: %s", table->mName.c_str()), e});
+                throw_with_trace(DBQueryException{e, "Error populating table: %s", table->mName.c_str()});
             }
         }
         txn.commit();
     }
     catch (pqxx::sql_error const &e)
     {
-        throw_with_trace(DBQueryException{"Error populating DB", e});
+        throw_with_trace(DBQueryException{e, "Error populating DB"});
     }
 }
 
@@ -144,7 +148,7 @@ pqxx::result Database::queryTable(const boost::shared_ptr<Table>& table)
     }
     catch (pqxx::sql_error const &e)
     {
-        throw_with_trace(DBQueryException{format("Error querying DB.%s", table->mName), e});
+        throw_with_trace(DBQueryException{e, "Error querying DB.%s", table->mName});
     }
     return r;
 }

@@ -17,18 +17,13 @@ namespace Yamo {
 class JsonException : public Exception {
 public:
     const nlohmann::json::exception mJsonEx;
+    
+    friend std::ostream& operator<<(std::ostream& os, const JsonException& e);
 
-    JsonException(const std::string& msg, const nlohmann::json::exception& e) :
-        Exception(msg, e),
+    JsonException(const nlohmann::json::exception& e, const std::string& msg) :
+        Exception(e, msg),
         mJsonEx(e)
     {}
-
-    friend std::ostream& operator<<(std::ostream& os, const JsonException& e)
-    {
-        e.printMsg(os);
-        e.printTrace(os);
-        return os;
-    }
 
 protected:
     std::ostream& printMsg(std::ostream& os) const override;

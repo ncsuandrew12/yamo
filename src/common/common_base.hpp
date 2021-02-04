@@ -26,7 +26,8 @@ typedef std::string Secret; // TODO Make non-dumpable and zeroize
 //     return name;
 // }
 
-template<typename... Args> std::string format(const std::string format, Args... args) {
+template<typename... Args>
+std::string stringFormat(const std::string& format, const Args&... args) {
     char buffer[255]; // TODO
     snprintf(buffer, 255, format.c_str(), args...);
     return std::string(buffer);
