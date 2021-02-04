@@ -3,13 +3,14 @@
 
 // Common
 #include "common.hpp"
+#include "json.hpp"
 
 // Standard includes
 
 // Third-party includes
 
 // Yamo includes
-#include "datatypes.hpp"
+#include "Model.hpp"
 
 namespace Yamo {
 
@@ -20,7 +21,7 @@ std::ostream& operator<<(std::ostream& os, const Entity& e);
 class Entity
 {
 public:
-    EntityID mYamoID;
+    EntityID mID;
     std::string mFirstName;
     std::string mLastName;
     std::vector<Email> mEmails;
@@ -29,8 +30,17 @@ public:
 
     Entity() {};
     Entity(const EntityDBEntry& entry) { Deserialize(entry); }
+    Entity(const json& data) { deserializeJson(data); }
 
+    json serializeJson();
+    void serializeJsonDBEntity(json& data);
+    void serializeJsonDBEmails(json& data);
     void Deserialize(const EntityDBEntry& entry);
+    void deserializeJson(const json& data);
+
+private:
+    template<typename T>
+    T deserializeField(const json& data, const std::string& fieldName);
 };
 
 }

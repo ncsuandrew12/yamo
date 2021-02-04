@@ -2,7 +2,7 @@
 #define _H_FIELD
 
 // Common
-#include "../../common/common.hpp"
+#include "../../common.hpp"
 
 // Standard includes
 #include <iostream>

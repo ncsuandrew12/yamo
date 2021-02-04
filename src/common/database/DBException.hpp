@@ -2,7 +2,7 @@
 #define _H_DBEXCEPTION
 
 // Common
-#include "../common/common.hpp"
+#include "../common.hpp"
 
 // Standard includes
 

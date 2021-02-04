@@ -1,25 +1,26 @@
 // Header
 #include "server.hpp"
 
+// Common
+#include "common/json.hpp"
+#include "common/Entity.hpp"
+#include "common/Model.hpp"
+#include "common/database/Database.hpp"
+#include "common/database/schema/Schema.hpp"
+
 // Standard includes
 #include <iostream>
 #include <fstream>
 
 // Third-party includes
 
-// Yamo common
-#include "common/json.hpp"
-#include "common/Entity.hpp"
-
-// Yamo database
-#include "database/Database.hpp"
-#include "database/YamoSchema.hpp"
-
 // Yamo includes
+#include "YamoModel.hpp"
 
 using namespace Yamo;
 
 int main(int argc, char **argv) {
+    boost::shared_ptr<Database> database;
     try {
         json config;
         {
@@ -41,66 +42,69 @@ int main(int argc, char **argv) {
             }
         }
 
-        std::map<std::string, std::vector<std::vector<std::string>>> data;
+        json dataJson;
         {
-            std::string table;
-            std::string line;
-            std::ifstream file("data/data.csv");
-            if (file.is_open()) {
-                while (getline(file, line)) {
-                    if (line.size() == 0) {
-                        continue;
-                    }
-                    if (line[0] == '#') {
-                        table = line.substr(1);
-                        data[table] = std::vector<std::vector<std::string>>();
-                        continue;
-                    }
-                    std::string delim = ",";
-                    auto fieldStart = 0;
-                    auto fieldEnd = line.find(delim);
-                    std::vector<std::string> rowData;
-                    while (fieldEnd != std::string::npos) {
-                        rowData.emplace_back(line.substr(fieldStart, fieldEnd - fieldStart));
-                        fieldStart = fieldEnd + delim.length();
-                        fieldEnd = line.find(delim, fieldStart);
-                        if (fieldEnd == std::string::npos) {
-                            rowData.emplace_back(line.substr(fieldStart, rowData.size() - fieldStart));
-                        }
-                    }
-                    data[table].emplace_back(rowData);
-                }
-                file.close();
+            try {
+                std::ifstream file("data/data.json");
+                file >> dataJson;
+            } catch (const json::exception& e) {
+                throw_with_trace(JsonException{e, "Error parsing schema."});
             }
         }
 
-        YamoSchema schema(schemaJson);
+        Schema schema{schemaJson};
 
-        Database::Config dbConfig(config["database"]);
+        Database::Config dbConfig{config["database"]};
 
-        Database db(schema);
-        db.connect(dbConfig);
-        db.clear();
-        db.setup();
+        database = boost::make_shared<Database>(schema);
+        database->connect(dbConfig);
+        database->clear();
+        database->setup();
 
-        std::cout << schema << std::endl;
 
-        db.populate(data);
-        std::list<boost::shared_ptr<Entity>> entities{db.queryEntities()};
+        // database->populate(dataJson);
 
-        for (boost::shared_ptr<Entity> entity : entities) {
-            std::cout << *entity;
-        }
+        YamoModel yamoModel{database};
+
+        yamoModel.deserializeJson(dataJson);
+
+        yamoModel.sync();
+
+        std::cout << "Schema" << std::endl
+                  << schema << std::endl
+                  << std::endl
+                  << "Data (Compact mode):" << std::endl
+                  << yamoModel.serializeJson().dump(2) << std::endl
+                  << std::endl
+                  << "Data (DB mode):" << std::endl
+                  << yamoModel.serializeJsonDB().dump(2) << std::endl;
     }
     catch (Exception const &e)
     {
-        std::cerr << "Exception: " << e;
+        std::cerr << "Exception: " << e << std::endl;
         return 1;
     }
     catch (std::exception const &e)
     {
         Exception ex{e};
-        std::cerr << "Exception: " << e.what() << ex;
+        std::cerr << "Exception: " << e.what() << ex << std::endl;
+        return 1;
+    }
+
+    try {
+        if (database) {
+            database->clear();
+        }
+    }
+    catch (Exception const &e)
+    {
+        std::cerr << "Exception: " << e << std::endl;
+        return 1;
+    }
+    catch (std::exception const &e)
+    {
+        Exception ex{e};
+        std::cerr << "Exception: " << e.what() << ex << std::endl;
         return 1;
     }
 

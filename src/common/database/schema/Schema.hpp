@@ -2,7 +2,8 @@
 #define _H_SCHEMA
 
 // Common
-#include "../../common/common.hpp"
+#include "../../common.hpp"
+#include "../../json.hpp"
 
 // Standard includes
 #include <iostream>
@@ -28,6 +29,14 @@ public:
 
     std::map<std::string, boost::shared_ptr<Table>> mTables;
     std::vector<boost::shared_ptr<Table>> mTablesVector;
+
+    Schema() {}
+    Schema(const json& schema);
+
+    void deserializeJson(const json& schema);
+
+private:
+    static void addTable(const json& schema, std::vector<std::string>& tableNames, const std::string& tableName);
 };
 
 }

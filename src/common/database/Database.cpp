@@ -2,20 +2,12 @@
 #include "Database.hpp"
 
 // Standard includes
-#include <iostream>
 
 // Third-party includes
-#include <pqxx/pqxx>
 
 // Yamo includes
-#include "../common/Entity.hpp"
-#include "DBException.hpp"
-#include "DBQueryException.hpp"
 
 namespace Yamo {
-
-const std::string Database::kTableEntities = "entities";
-const std::string Database::kTableEmails = "emails";
 
 Database::Config::Config(const json& config) {
     mServer = config["server"];
@@ -84,14 +76,16 @@ void Database::setup()
     }
 }
 
-void Database::populate(const std::map<std::string, std::vector<std::vector<std::string>>>& data)
+void Database::populate(const json& data)
 {
     try {
         pqxx::work txn{*mConnection};
         for (const boost::shared_ptr<Table>& table : mSchema.mTablesVector) {
+            if (data.find(table->mName) == data.end()) {
+                throw_with_trace(Exception{"Table %s does not exist in JSON data", table->mName.c_str()});
+            }
             try {
-                txn.exec(
-                    table->SerializeSQLInsert(std::vector<std::vector<std::string>>({data.at(table->mName)})).c_str());
+                txn.exec(table->SerializeSQLInsert(data.at(table->mName)).c_str());
             }
             catch (pqxx::sql_error const &e) {
                 throw_with_trace(DBQueryException{e, "Error populating table: %s", table->mName.c_str()});
@@ -103,33 +97,6 @@ void Database::populate(const std::map<std::string, std::vector<std::vector<std:
     {
         throw_with_trace(DBQueryException{e, "Error populating DB"});
     }
-}
-
-std::list<boost::shared_ptr<Entity>> Database::queryEntities()
-{
-    std::map<EntityID, boost::shared_ptr<Entity>> entities;
-    pqxx::result r = queryTable(kTableEntities);
-    for (pqxx::row row : r) {
-        boost::shared_ptr<Entity> entity = boost::make_shared<Entity>(row);
-        entities[entity->mYamoID] = entity;
-    }
-    r = queryTable(kTableEmails);
-    for (pqxx::row row : r) {
-        EntityID entityID = row["entityID"].as<EntityID>();
-        if (entities.find(entityID) != entities.end()) {
-            entities[entityID]->mEmails.emplace_back(row["email"].as<Email>());
-        }
-        else
-        {
-            throw_with_trace(Exception{"Email entry lacks corresponding entity"});
-        }
-    }
-    std::list<boost::shared_ptr<Entity>> list;
-    for (auto entry : entities)
-    {
-        list.emplace_back(entry.second);
-    }
-    return list;
 }
 
 pqxx::result Database::queryTable(const std::string& tableName)

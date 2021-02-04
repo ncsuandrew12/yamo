@@ -41,7 +41,10 @@ std::ostream& Exception::printTrace(std::ostream& os) const
     os << std::endl << "  Trace:" << std::endl;
     for (std::vector<boost::stacktrace::frame>::size_type sti = 1 ; sti < frames.size() ; sti++)
     {
-        os << "    " << sti << "# " << frames[sti] << std::endl;
+        os << "    " << sti << "# " << frames[sti];
+        if (sti < frames.size() - 1) {
+            os << std::endl;
+        }
     }
     return os;
 }

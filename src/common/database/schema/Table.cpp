@@ -12,10 +12,13 @@ namespace Yamo {
 
 std::ostream& operator<<(std::ostream& os, const Table& t)
 {
-    os << "  Table: " << t.mName << "(" << t.mPrimaryKey->mName << ")" << std::endl << *(t.mPrimaryKey) << std::endl;
+    os << "  Table: " << t.mName << "(" << t.mPrimaryKey->mName << ")" << std::endl << *(t.mPrimaryKey);
+    if (t.mFields.size() + t.mReferences.size() > 1) {
+        os << std::endl;
+    }
     for (boost::shared_ptr<RefField> field : t.mReferences) {
         os << *field;
-        if (field != t.mReferences.back() || !t.mFields.empty()) {
+        if (field != t.mReferences.back() || t.mFields.size() > 1) {
             os << std::endl;
         }
     }
@@ -51,30 +54,19 @@ std::string Table::SerializeSQLDrop() const {
     return stringFormat("DROP TABLE IF EXISTS %s;", mName.c_str());
 }
 
-std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const {
-    std::string sql = "INSERT INTO " + mName + "(";
-    bool first = true;
+std::string Table::SerializeSQLInsert(const json& data) const {
+    std::string sql = "INSERT INTO " + mName + "(" + mPrimaryKey->SerializeSQLInsert();
     for (boost::shared_ptr<RefField> field : mReferences) {
-        if (first) {
-            first = false;
-        } else {
-            sql = sql + ", ";
-        }
-        sql = sql + field->SerializeSQLInsert();
+        sql = sql + ", " + field->SerializeSQLInsert();
     }
     for (boost::shared_ptr<Field> field : mFields) {
         if (field == mPrimaryKey) {
             continue;
         }
-        if (first) {
-            first = false;
-        } else {
-            sql = sql + ", ";
-        }
-        sql = sql + field->SerializeSQLInsert();
+        sql = sql + ", " + field->SerializeSQLInsert();
     }
     sql = sql + ") VALUES ";
-    first = true;
+    bool first = true;
     for (const std::vector<std::string>& rowData : data) {
         if (first) {
             first = false;
@@ -82,33 +74,23 @@ std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>
             sql = sql + ", ";
         }
 
-        if (mReferences.size() + mFields.size() - 1 != rowData.size()) {
+        if (mReferences.size() + mFields.size() != rowData.size()) {
             throw_with_trace(Exception{"Wrong length of field entries (%d, expected %d)",
                                        rowData.size(),
-                                       mReferences.size() + mFields.size() - 1});
+                                       mReferences.size() + mFields.size()});
         }
 
         sql = sql + "(";
         auto datum = rowData.begin();
-        bool firstI = true;
+        sql = sql + mPrimaryKey->SerializeSQLInsertData(*datum++);
         for (boost::shared_ptr<RefField> field : mReferences) {
-            if (firstI) {
-                firstI = false;
-            } else {
-                sql = sql + ", ";
-            }
-            sql = sql + field->SerializeSQLInsertData(*datum++);
+            sql = sql + ", " + field->SerializeSQLInsertData(*datum++);
         }
         for (boost::shared_ptr<Field> field : mFields) {
             if (field == mPrimaryKey) {
                 continue;
             }
-            if (firstI) {
-                firstI = false;
-            } else {
-                sql = sql + ", ";
-            }
-            sql = sql + field->SerializeSQLInsertData(*datum++);
+            sql = sql + ", "  + field->SerializeSQLInsertData(*datum++);
         }
         sql = sql + ")";
     }

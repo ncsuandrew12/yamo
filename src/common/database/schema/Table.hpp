@@ -2,7 +2,7 @@
 #define _H_TABLE
 
 // Common
-#include "../../common/common.hpp"
+#include "../../common.hpp"
 
 // Standard includes
 #include <iostream>
@@ -13,6 +13,7 @@
 #include <pqxx/pqxx>
 
 // Yamo includes
+#include "../../json.hpp"
 #include "Field.hpp"
 #include "FieldType.hpp"
 
@@ -46,7 +47,7 @@ public:
 
     std::string SerializeSQLCreate() const;
     std::string SerializeSQLDrop() const;
-    std::string SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const;
+    std::string SerializeSQLInsert(const json& data) const;
     std::string SerializeSQLSelect() const;
 
     const std::vector<boost::shared_ptr<Field>>& getFields() const;
