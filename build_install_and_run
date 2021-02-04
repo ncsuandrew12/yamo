@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+
+make clean
+
+clear
+
+./build
+
+rm -rf /tmp/yamo/
+
+mkdir -p /tmp/yamo/
+
+cp ./bin/deliverables/yamo.tgz /tmp/yamo/
+
+cd /tmp/yamo
+
+tar -xzvf yamo.tgz
+
+./install
+
+cd ~/yamo-install
+
+./server

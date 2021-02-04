@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+INSTALL_PATH="/home/afelsher/yamo-install/"
+
+cp "$INSTALL_PATH/cfg/config.json" /tmp/yamo-config.json
+
+rm -rf "$INSTALL_PATH"
+
+mkdir -vp "$INSTALL_PATH"
+
+cp -rvf ./yamo/* "$INSTALL_PATH"
+
+mv /tmp/yamo-config.json "$INSTALL_PATH/cfg/config.json"

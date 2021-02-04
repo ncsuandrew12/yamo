@@ -1,0 +1,8 @@
+
+{
+    "server": "localhost",
+    "serverType": "postgresql",
+    "user": "afelsher",
+    "password": "",
+    "schema": "yamo"
+}

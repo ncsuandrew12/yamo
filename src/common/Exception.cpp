@@ -1,3 +1,6 @@
+// Header
+#include "Exception.hpp"
+
 // Standard includes
 #include <iostream>
 
@@ -6,9 +9,6 @@
 #include <boost/exception/all.hpp>
 
 // Yamo includes
-
-// Header
-#include "exception.hpp"
 
 namespace Yamo {
 
@@ -32,8 +32,8 @@ std::ostream& Exception::printTrace(std::ostream& os) const
     }
 
     std::vector<boost::stacktrace::frame> frames = detail->as_vector();
-    os << "  Trace:" << std::endl;
-    for (int sti = 1 ; sti < frames.size() ; sti++)
+    os << std::endl << "  Trace:" << std::endl;
+    for (std::vector<boost::stacktrace::frame>::size_type sti = 1 ; sti < frames.size() ; sti++)
     {
         os << "    " << sti << "# " << frames[sti] << std::endl;
     }

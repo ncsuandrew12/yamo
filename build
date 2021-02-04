@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+make BUILD_MODE=debug
+
+rm -rf ./bin/deliverables/
+
+mkdir -p ./bin/deliverables/yamo/
+
+cp install ./bin/deliverables/
+cp ./bin/server ./bin/deliverables/yamo/
+cp -r ./cfg/ ./bin/deliverables/yamo/
+
+cd ./bin/deliverables
+
+tar -czf yamo.tgz yamo/ install

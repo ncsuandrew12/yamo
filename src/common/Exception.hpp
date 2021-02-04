@@ -1,18 +1,22 @@
 #ifndef _H_EXCEPTION
 #define _H_EXCEPTION
 
-// Standard includes
-#include <iostream>
-// #include <cxxabi.h>
+// Common
+#include "common_base.hpp"
 
-// Third-party includes
+// Standard includes
 #include <boost/stacktrace.hpp>
 #include <boost/exception/all.hpp>
-#include <pqxx/pqxx>
+#include <iostream>
+
+// Third-party includes
 
 // Yamo includes
 
 namespace Yamo {
+
+// Forwards
+class JsonException;
 
 typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
 
@@ -21,19 +25,11 @@ void throw_with_trace(const E& e) {
     throw boost::enable_error_info(e) << traced(boost::stacktrace::stacktrace());
 }
 
-// template<typename T>
-// const std::string getClassName(T) {
-//     int status;
-//     char * demangled = abi::__cxa_demangle(typeid(T).name(),0,0,&status);
-//     std::string name(demangled);
-//     free(demangled);
-//     return name;
-// }
-
 class Exception : public std::exception
 {
 public:
     const std::string mMsg;
+    const std::exception mEx;
 
     Exception(const std::exception& e) :
         Exception(e.what(), e)
@@ -41,7 +37,8 @@ public:
 
     Exception(const std::string& msg, const std::exception& e) :
         std::exception(e),
-        mMsg(msg)
+        mMsg(msg),
+        mEx(e)
     {}
 
     Exception(const std::string& msg) :
