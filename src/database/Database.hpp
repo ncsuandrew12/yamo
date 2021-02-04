@@ -3,6 +3,7 @@
 
 // Common
 #include "../common/common.hpp"
+#include "../common/json.hpp"
 
 // Standard includes
 #include <iostream>
@@ -11,7 +12,7 @@
 #include <pqxx/pqxx>
 
 // Yamo includes
-#include "YamoSchema.hpp"
+#include "schema/Schema.hpp"
 
 namespace Yamo {
 
@@ -21,24 +22,39 @@ class DBException;
 class DBQueryException;
 
 class Database {
-private:
-    boost::shared_ptr<pqxx::connection> mConnection;
-    const YamoSchema mSchema;
+public:
+    struct Config {
+        std::string mServer;
+        std::string mServerType;
+        std::string mUser;
+        Secret mPassword;
+        std::string mSchemaName;
+
+        Config(const json& config);
+    };
 
 public:
-    void connect(const std::string& serverType,
-                 const std::string& server,
-                 const std::string& user,
-                 const Secret& password,
-                 const std::string& schema);
+    static const std::string kTableEntities;
+    static const std::string kTableEmails;
+
+private:
+    boost::shared_ptr<pqxx::connection> mConnection;
+    const Schema mSchema;
+
+public:
+    Database(const Schema& schema) :
+        mSchema(schema)
+    {}
+
+    void connect(const Config& config);
     void clear();
     void setup();
     void populate(const std::map<std::string, std::vector<std::vector<std::string>>>& data);
     std::list<boost::shared_ptr<Entity>> queryEntities();
 
 private:
-    pqxx::result dbQueryEntities();
-    pqxx::result dbQueryEmails();
+    pqxx::result queryTable(const std::string& tableName);
+    pqxx::result queryTable(const boost::shared_ptr<Table>& table);
 };
 
 }

@@ -14,14 +14,25 @@
 
 namespace Yamo {
 
-void Database::connect(const std::string& serverType,
-                       const std::string& server,
-                       const std::string& user,
-                       const Secret& password,
-                       const std::string& schema) {
+const std::string Database::kTableEntities = "entities";
+const std::string Database::kTableEmails = "emails";
+
+Database::Config::Config(const json& config) {
+    mServer = config["server"];
+    mServerType = config["serverType"];
+    mUser = config["user"];
+    mPassword = config["password"];
+    mSchemaName = config["schemaName"];
+}
+
+void Database::connect(const Config& config) {
     try {
-        mConnection = boost::make_shared<pqxx::connection>(serverType + "://" + user + ":" + password + "@" + server +
-                                                           "/" + schema);
+        mConnection = boost::make_shared<pqxx::connection>(format("%s://%s:%s@%s/%s",
+                                                                  config.mServerType.c_str(),
+                                                                  config.mUser.c_str(),
+                                                                  config.mPassword.c_str(),
+                                                                  config.mServer.c_str(),
+                                                                  config.mSchemaName.c_str()));
     } catch (const std::exception& e) { // Add catches for all pqxx error types
         throw_with_trace(Exception{"Error connecting to database.", e});
     }
@@ -31,12 +42,12 @@ void Database::clear()
 {
     try {
         pqxx::work txn{*mConnection};
-        std::vector<boost::shared_ptr<Table>> tables = mSchema.mTables;
+        std::vector<boost::shared_ptr<Table>> tables = mSchema.mTablesVector;
         // Later tables may depend on earlier tables, so reverse the order when dropping.
         std::reverse(tables.begin(), tables.end());
         for (const boost::shared_ptr<Table>& table : tables) {
             try {
-                txn.exec(format("DROP TABLE IF EXISTS %s", table->mName.c_str()));
+                txn.exec(table->SerializeSQLDrop().c_str());
             }
             catch (pqxx::sql_error const &e) {
                 throw_with_trace(DBQueryException{format("Error dropping table: %s", table->mName.c_str()), e});
@@ -53,7 +64,7 @@ void Database::setup()
 {
     try {
         pqxx::work txn{*mConnection};
-        for (const boost::shared_ptr<Table>& table : mSchema.mTables) {
+        for (const boost::shared_ptr<Table>& table : mSchema.mTablesVector) {
             try {
                 txn.exec(table->SerializeSQLCreate().c_str());
             }
@@ -73,7 +84,7 @@ void Database::populate(const std::map<std::string, std::vector<std::vector<std:
 {
     try {
         pqxx::work txn{*mConnection};
-        for (const boost::shared_ptr<Table>& table : mSchema.mTables) {
+        for (const boost::shared_ptr<Table>& table : mSchema.mTablesVector) {
             try {
                 txn.exec(
                     table->SerializeSQLInsert(std::vector<std::vector<std::string>>({data.at(table->mName)})).c_str());
@@ -82,8 +93,6 @@ void Database::populate(const std::map<std::string, std::vector<std::vector<std:
                 throw_with_trace(DBQueryException{format("Error populating table: %s", table->mName.c_str()), e});
             }
         }
-        // txn.exec("INSERT INTO entities(firstName, lastName) VALUES ('Andrew', 'Felsher'), ('Mayra', 'Felsher')");
-        // txn.exec("INSERT INTO emails(entityID, email) VALUES (1, 'ncsuandrew12@gmail.com'), (2, 'mayracrlinares@gmail.com')");
         txn.commit();
     }
     catch (pqxx::sql_error const &e)
@@ -95,12 +104,12 @@ void Database::populate(const std::map<std::string, std::vector<std::vector<std:
 std::list<boost::shared_ptr<Entity>> Database::queryEntities()
 {
     std::map<EntityID, boost::shared_ptr<Entity>> entities;
-    pqxx::result r = dbQueryEntities();
+    pqxx::result r = queryTable(kTableEntities);
     for (pqxx::row row : r) {
         boost::shared_ptr<Entity> entity = boost::make_shared<Entity>(row);
         entities[entity->mYamoID] = entity;
     }
-    r = dbQueryEmails();
+    r = queryTable(kTableEmails);
     for (pqxx::row row : r) {
         EntityID entityID = row["entityID"].as<EntityID>();
         if (entities.find(entityID) != entities.end()) {
@@ -119,34 +128,23 @@ std::list<boost::shared_ptr<Entity>> Database::queryEntities()
     return list;
 }
 
-pqxx::result Database::dbQueryEntities()
+pqxx::result Database::queryTable(const std::string& tableName)
 {
-    pqxx::result r;
-    try {
-        pqxx::work txn{*mConnection};
-        r = pqxx::result{txn.exec("SELECT entityID, firstName, lastName FROM entities")};
-        txn.commit();
-        return r;
-    }
-    catch (pqxx::sql_error const &e)
-    {
-        throw_with_trace(DBQueryException{"Error querying DB.entites", e});
-    }
-    return r;
+    return queryTable(mSchema.mTables.at(tableName));
 }
 
-pqxx::result Database::dbQueryEmails()
+pqxx::result Database::queryTable(const boost::shared_ptr<Table>& table)
 {
     pqxx::result r;
     try {
         pqxx::work txn{*mConnection};
-        r = pqxx::result{txn.exec("SELECT entityID, email FROM emails")};
+        r = pqxx::result{txn.exec(table->SerializeSQLSelect())};
         txn.commit();
         return r;
     }
     catch (pqxx::sql_error const &e)
     {
-        throw_with_trace(DBQueryException{"Error querying DB.emails", e});
+        throw_with_trace(DBQueryException{format("Error querying DB.%s", table->mName), e});
     }
     return r;
 }

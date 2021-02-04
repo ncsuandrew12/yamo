@@ -3,6 +3,7 @@
 
 // Common
 #include "../common/common.hpp"
+#include "../common/json.hpp"
 
 // Standard includes
 
@@ -15,7 +16,8 @@ namespace Yamo {
 
 class YamoSchema : public Schema {
 public:
-    YamoSchema();
+    YamoSchema() {}
+    YamoSchema(const json& schema);
 };
 
 }

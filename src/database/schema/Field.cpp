@@ -18,7 +18,7 @@ Field::Field(const std::string& name, const FieldType& type, const bool override
     mName(name),
     mType(type)
 {
-    if (!override && mType.mYamoType == FieldSchemaType::REFERENCE) {
+    if (!override && mType.mSchemaType == FieldSchemaType::REFERENCE) {
         throw_with_trace(Exception{"Field constructed of type REFERENCE. Use RefField instead!"});
     }
 }
@@ -65,6 +65,10 @@ std::string Field::SerializeSQLInsertData(const std::string& data) {
             break;
     }
     return sql;
+}
+
+std::string Field::SerializeSQLSelect() {
+    return mName;
 }
 
 std::ostream& Field::print(std::ostream& os) const {

@@ -22,7 +22,7 @@ RefField::RefField(const std::string& name,
     mRefTable(table),
     mRefField(field)
 {
-    if (mType.mYamoType != FieldSchemaType::REFERENCE) {
+    if (mType.mSchemaType != FieldSchemaType::REFERENCE) {
         throw_with_trace(Exception{"RefField constructed with type other than REFERENCE. Use Field instead!"});
     }
 }

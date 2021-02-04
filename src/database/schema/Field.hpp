@@ -29,6 +29,7 @@ public:
     std::string SerializeSQLCreate();
     std::string SerializeSQLInsert();
     std::string SerializeSQLInsertData(const std::string& data);
+    std::string SerializeSQLSelect();
 
     virtual std::ostream& print(std::ostream& os) const;
 };

@@ -10,7 +10,7 @@
 namespace Yamo {
 
 bool FieldType::operator==(const FieldType& other) const {
-    return mYamoType == other.mYamoType && mPgType == other.mPgType && mBaseType == other.mBaseType;
+    return mSchemaType == other.mSchemaType && mPgType == other.mPgType && mBaseType == other.mBaseType;
 }
 
 }

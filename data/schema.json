@@ -1,0 +1,26 @@
+
+{
+    "entities": {
+        "entityID": {
+            "type": "key"
+        },
+        "firstName": {
+            "type": "shortString"
+        },
+        "lastName": {
+            "type": "shortString"
+        }
+    },
+    "emails": {
+        "emailID": {
+            "type": "key"
+        },
+        "entityID": {
+            "type": "reference",
+            "table": "entities"
+        },
+        "email": {
+            "type": "shortString"
+        }
+    }
+}

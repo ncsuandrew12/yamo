@@ -17,8 +17,11 @@ const FieldType Schema::kShortString =
 std::ostream& operator<<(std::ostream& os, const Schema& s)
 {
     os << "Schema:" << std::endl;
-    for (boost::shared_ptr<Table> table : s.mTables) {
-        os << *table << std::endl;
+    for (auto table : s.mTablesVector) {
+        os << *(table);
+        if (table != s.mTablesVector.back()){
+            os << std::endl;
+        }
     }
     return os;
 }

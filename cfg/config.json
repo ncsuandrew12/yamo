@@ -5,6 +5,6 @@
         "serverType": "postgresql",
         "user": "afelsher",
         "password": "",
-        "schema": "yamo"
+        "schemaName": "yamo"
     }
 }

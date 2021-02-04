@@ -21,55 +21,69 @@ using namespace Yamo;
 
 int main(int argc, char **argv) {
     try {
-        std::string configData;
+        json config;
         {
+            try {
+                std::ifstream file("cfg/config.json");
+                file >> config;
+            } catch (const json::exception& e) {
+                throw_with_trace(JsonException{"Error parsing config.", e});
+            }
+        }
+
+        json schemaJson;
+        {
+            try {
+                std::ifstream file("data/schema.json");
+                file >> schemaJson;
+            } catch (const json::exception& e) {
+                throw_with_trace(JsonException{"Error parsing schema.", e});
+            }
+        }
+
+        std::map<std::string, std::vector<std::vector<std::string>>> data;
+        {
+            std::string table;
             std::string line;
-            std::ifstream file("cfg/config.json");
+            std::ifstream file("data/data.csv");
             if (file.is_open()) {
                 while (getline(file, line)) {
-                    configData = configData + line + "\n";
+                    if (line.size() == 0) {
+                        continue;
+                    }
+                    if (line[0] == '#') {
+                        table = line.substr(1);
+                        data[table] = std::vector<std::vector<std::string>>();
+                        continue;
+                    }
+                    std::string delim = ",";
+                    auto fieldStart = 0;
+                    auto fieldEnd = line.find(delim);
+                    std::vector<std::string> rowData;
+                    while (fieldEnd != std::string::npos) {
+                        rowData.emplace_back(line.substr(fieldStart, fieldEnd - fieldStart));
+                        fieldStart = fieldEnd + delim.length();
+                        fieldEnd = line.find(delim, fieldStart);
+                        if (fieldEnd == std::string::npos) {
+                            rowData.emplace_back(line.substr(fieldStart, rowData.size() - fieldStart));
+                        }
+                    }
+                    data[table].emplace_back(rowData);
                 }
                 file.close();
             }
         }
 
-        json config;
-        try {
-            config = json::parse(configData);
-        } catch (const json::exception& e) {
-            throw_with_trace(JsonException{"Error parsing config.", e});
-        }
+        YamoSchema schema(schemaJson);
 
-        json databaseConfig = config["database"];
-        std::string server = databaseConfig["server"];
-        std::string serverType = databaseConfig["serverType"];
-        std::string user = databaseConfig["user"];
-        Secret password = databaseConfig["password"];
-        std::string schema = databaseConfig["schema"];
+        Database::Config dbConfig(config["database"]);
 
-        Database db;
-        db.connect(serverType, server, user, password, schema);
+        Database db(schema);
+        db.connect(dbConfig);
         db.clear();
         db.setup();
 
-        std::cout << YamoSchema() << std::endl;
-
-        std::map<std::string, std::vector<std::vector<std::string>>> data = {
-            {
-                "entities",
-                {
-                    {"Andrew", "Felsher"},
-                    {"Mayra", "Felsher"}
-                }
-            },
-            {
-                "emails",
-                {
-                    {"1", "ncsuandrew12@gmail.com"},
-                    {"2", "mayracrlinares@gmail.com"}
-                }
-            }
-        };
+        std::cout << schema << std::endl;
 
         db.populate(data);
         std::list<boost::shared_ptr<Entity>> entities{db.queryEntities()};

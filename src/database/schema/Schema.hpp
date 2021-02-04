@@ -26,7 +26,8 @@ public:
     static const FieldType kReference;
     static const FieldType kShortString;
 
-    std::vector<boost::shared_ptr<Table>> mTables;
+    std::map<std::string, boost::shared_ptr<Table>> mTables;
+    std::vector<boost::shared_ptr<Table>> mTablesVector;
 };
 
 }

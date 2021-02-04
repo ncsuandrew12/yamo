@@ -30,12 +30,12 @@ enum class FieldSchemaType { // TODO come up with a better name for this enum
 
 class FieldType {
 public:
-    const FieldSchemaType mYamoType;
+    const FieldSchemaType mSchemaType;
     const FieldPgType mPgType;
     const FieldBaseType mBaseType;
 
-    FieldType(const FieldSchemaType yamoType, const FieldPgType pgType, const FieldBaseType baseType) :
-        mYamoType(yamoType),
+    FieldType(const FieldSchemaType schemaType, const FieldPgType pgType, const FieldBaseType baseType) :
+        mSchemaType(schemaType),
         mPgType(pgType),
         mBaseType(baseType)
     {}

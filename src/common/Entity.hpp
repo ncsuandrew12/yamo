@@ -5,7 +5,6 @@
 #include "common.hpp"
 
 // Standard includes
-#include <ostream>
 
 // Third-party includes
 

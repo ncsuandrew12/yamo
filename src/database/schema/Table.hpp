@@ -45,8 +45,11 @@ public:
     {}
 
     std::string SerializeSQLCreate() const;
+    std::string SerializeSQLDrop() const;
     std::string SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const;
+    std::string SerializeSQLSelect() const;
 
+    const std::vector<boost::shared_ptr<Field>>& getFields() const;
 };
 
 }

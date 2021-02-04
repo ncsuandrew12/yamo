@@ -47,6 +47,10 @@ std::string Table::SerializeSQLCreate() const {
     return sql + ")";
 }
 
+std::string Table::SerializeSQLDrop() const {
+    return format("DROP TABLE IF EXISTS %s;", mName.c_str());
+}
+
 std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>>& data) const {
     std::string sql = "INSERT INTO " + mName + "(";
     bool first = true;
@@ -109,6 +113,23 @@ std::string Table::SerializeSQLInsert(const std::vector<std::vector<std::string>
         sql = sql + ")";
     }
     return sql;
+}
+
+std::string Table::SerializeSQLSelect() const {
+    std::string sql = "SELECT " + mPrimaryKey->SerializeSQLSelect();
+    for (boost::shared_ptr<RefField> field : mReferences) {
+        sql = sql + ", " + field->SerializeSQLSelect();
+    }
+    for (boost::shared_ptr<Field> field : mFields) {
+        if (field != mPrimaryKey) {
+            sql = sql + ", " + field->SerializeSQLSelect();
+        }
+    }
+    return sql + " FROM " + mName;
+}
+
+const std::vector<boost::shared_ptr<Field>>& Table::getFields() const {
+    return mFields;
 }
 
 }
