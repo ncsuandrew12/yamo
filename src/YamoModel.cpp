@@ -28,14 +28,16 @@ void YamoModel::syncEntities() {
     if(mEntities.empty()) {
         pqxx::result r = mDatabase->queryTable(kTableEntities);
         for (pqxx::row row : r) {
-            boost::shared_ptr<Entity> entity = boost::make_shared<Entity>(row);
+            boost::shared_ptr<Entity> entity = boost::make_shared<Entity>();
+            entity->deserializeDB(row);
             mEntities[entity->mID] = entity;
         }
         r = mDatabase->queryTable(kTableEmails);
         for (pqxx::row row : r) {
-            EntityID entityID = row["entityID"].as<EntityID>();
-            if (mEntities.find(entityID) != mEntities.end()) {
-                mEntities[entityID]->mEmails.emplace_back(row["email"].as<Email>());
+            Email email;
+            email.deserializeDB(row);
+            if (mEntities.find(email.mEntityID) != mEntities.end()) {
+                mEntities[email.mEntityID]->mEmails.emplace_back(email);
             }
             else
             {
@@ -47,13 +49,22 @@ void YamoModel::syncEntities() {
     }
 }
 
-json YamoModel::serializeJson() {
+json YamoModel::serializeJsonCompact() {
     json data;
     data[kTableEntities] = std::vector<json>();
     for (auto const& [key, val] : mEntities) {
-        data[kTableEntities].emplace_back(val->serializeJson());
+        data[kTableEntities].emplace_back(val->serializeJsonCompact());
     }
     return data;
+}
+
+void YamoModel::deserializeJsonCompact(const json& data) {
+    IDState idState;
+    for (const json& entityData : data[kTableEntities]) {
+        boost::shared_ptr<Entity> entity = boost::make_shared<Entity>();
+        entity->deserializeJsonCompact(entityData, idState);
+        mEntities[entity->mID] = entity;
+    }
 }
 
 json YamoModel::serializeJsonDB() {
@@ -67,15 +78,6 @@ json YamoModel::serializeJsonDB() {
         val->serializeJsonDBEmails(data[kTableEmails]);
     }
     return data;
-}
-
-void YamoModel::deserializeJson(const json& data) {
-    EntityID entityID = 1;
-    for (const json& entityData : data[kTableEntities]) {
-        boost::shared_ptr<Entity> entity = boost::make_shared<Entity>(entityData);
-        entity->mID = entityID++;
-        mEntities[entity->mID] = entity;
-    }
 }
 
 }

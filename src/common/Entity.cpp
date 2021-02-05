@@ -24,13 +24,34 @@ std::ostream& operator<<(std::ostream& os, const Entity& e) {
     return os << "}";
 }
 
-json Entity::serializeJson() {
+json Entity::serializeJsonCompact() {
     json data;
-    // data["entityID"] = mID;
     data["firstName"] = mFirstName;
     data["lastName"] = mLastName;
-    data["emails"] = json{mEmails};
+    if (!mEmails.empty()) {
+        data["emails"] = std::vector<std::string>();
+        for (Email& email : mEmails) {
+            email.serializeJsonCompact(data["emails"]);
+        }
+    }
     return data;
+}
+
+void Entity::deserializeJsonCompact(const json& data, IDState& idState) {
+    mID = idState.mEntityID++;
+    mFirstName = deserializeJsonField<std::string>(data, "firstName");
+    mLastName = deserializeJsonField<std::string>(data, "lastName");
+    for (const std::string& email : data["emails"]) {
+        mEmails.emplace_back(idState.mEmailID++, mID, email);
+    }
+}
+
+template<typename T>
+T Entity::deserializeJsonField(const json& data, const std::string& fieldName) {
+    if (data.find(fieldName) == data.end()) {
+        throw_with_trace(Exception{"Entity JSON data missing %s field", fieldName});
+    }
+    return data[fieldName].get<T>();
 }
 
 void Entity::serializeJsonDBEntity(json& data) {
@@ -38,31 +59,15 @@ void Entity::serializeJsonDBEntity(json& data) {
 }
 
 void Entity::serializeJsonDBEmails(json& data) {
-    // TODO fix JSON representiation of emails
-    for (const Email& email : mEmails) {
-        data.emplace_back(std::vector<std::string>({stringFormat("%ld", data.size() + 1), stringFormat("%ld", mID), email}));
+    for (Email& email : mEmails) {
+        email.serializeJsonDB(data);
     }
 }
 
-void Entity::Deserialize(const EntityDBEntry& entry) {
+void Entity::deserializeDB(const pqxx::row& entry) {
     mID = entry["entityID"].as<EntityID>();
     mFirstName = entry["firstName"].as<std::string>();
     mLastName = entry["lastName"].as<std::string>();
-}
-
-template<typename T>
-T Entity::deserializeField(const json& data, const std::string& fieldName) {
-    if (data.find(fieldName) == data.end()) {
-        throw_with_trace(Exception{"Entity JSON data missing %s field", fieldName});
-    }
-    return data[fieldName].get<T>();
-}
-
-void Entity::deserializeJson(const json& data) {
-    // mID = deserializeField<EntityID>(data, "entityID");
-    mFirstName = deserializeField<std::string>(data, "firstName");
-    mLastName = deserializeField<std::string>(data, "lastName");
-    mEmails = deserializeField<std::vector<Email>>(data, "emails");
 }
 
 }

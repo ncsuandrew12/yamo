@@ -33,7 +33,7 @@ public:
     Schema() {}
     Schema(const json& schema);
 
-    void deserializeJson(const json& schema);
+    void deserializeJsonCompact(const json& schema);
 
 private:
     static void addTable(const json& schema, std::vector<std::string>& tableNames, const std::string& tableName);

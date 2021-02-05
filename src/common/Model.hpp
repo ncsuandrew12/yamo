@@ -7,17 +7,12 @@
 // Standard includes
 
 // Third-party includes
-#include <pqxx/pqxx>
 
 // Yamo includes
 #include "json.hpp"
+#include "IDState.hpp"
 
 namespace Yamo {
-
-typedef unsigned long DBSerial;
-typedef DBSerial EntityID;
-typedef std::string Email;
-typedef pqxx::row EntityDBEntry;
 
 // Forwards
 class Database;

@@ -27,9 +27,10 @@ public:
 public:
     void sync();
 
-    json serializeJson();
+    json serializeJsonCompact();
+    void deserializeJsonCompact(const json& data);
+
     json serializeJsonDB();
-    void deserializeJson(const json& data);
 
 private:
     void syncEntities();

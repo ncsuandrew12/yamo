@@ -27,13 +27,12 @@ std::ostream& operator<<(std::ostream& os, const Schema& s)
 }
 
 Schema::Schema(const json& schema) {
-    deserializeJson(schema);
+    deserializeJsonCompact(schema);
 }
 
-void Schema::deserializeJson(const json& schema) {
+void Schema::deserializeJsonCompact(const json& schema) {
     try {
 
-        // Get a map of the inter-table dependencies
         std::vector<std::string> tableNames;
         for (auto tableIter = schema.begin(); tableIter != schema.end(); tableIter++) {
             addTable(schema, tableNames, tableIter.key());

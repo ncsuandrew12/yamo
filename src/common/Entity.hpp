@@ -8,13 +8,14 @@
 // Standard includes
 
 // Third-party includes
+#include <pqxx/pqxx>
 
 // Yamo includes
+#include "Email.hpp"
+#include "IDState.hpp"
 #include "Model.hpp"
 
 namespace Yamo {
-
-class Entity;
 
 std::ostream& operator<<(std::ostream& os, const Entity& e);
 
@@ -28,19 +29,20 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Entity& e);
 
-    Entity() {};
-    Entity(const EntityDBEntry& entry) { Deserialize(entry); }
-    Entity(const json& data) { deserializeJson(data); }
+    Entity() {
+    }
 
-    json serializeJson();
+    json serializeJsonCompact();
+    void deserializeJsonCompact(const json& data, IDState& idState);
+
     void serializeJsonDBEntity(json& data);
     void serializeJsonDBEmails(json& data);
-    void Deserialize(const EntityDBEntry& entry);
-    void deserializeJson(const json& data);
+
+    void deserializeDB(const pqxx::row& entry);
 
 private:
     template<typename T>
-    T deserializeField(const json& data, const std::string& fieldName);
+    T deserializeJsonField(const json& data, const std::string& fieldName);
 };
 
 }

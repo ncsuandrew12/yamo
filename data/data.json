@@ -4,7 +4,6 @@
       "emails": [
         "mithrandir@shire.com"
       ],
-      "entityID": 1,
       "firstName": "Gandalf",
       "lastName": "Grey"
     },
@@ -12,7 +11,6 @@
       "emails": [
         "lord@isengard.com"
       ],
-      "entityID": 2,
       "firstName": "Saruman",
       "lastName": "White"
     }

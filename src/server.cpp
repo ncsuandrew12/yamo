@@ -61,23 +61,19 @@ int main(int argc, char **argv) {
         database->clear();
         database->setup();
 
-
-        // database->populate(dataJson);
-
         YamoModel yamoModel{database};
 
-        yamoModel.deserializeJson(dataJson);
+        yamoModel.deserializeJsonCompact(dataJson);
+
+        std::cout << schema << std::endl
+                  << std::endl
+                  << "Data (Compact):" << std::endl
+                  << yamoModel.serializeJsonCompact().dump(2) << std::endl
+                  << std::endl
+                  << "Data (DB):" << std::endl
+                  << yamoModel.serializeJsonDB().dump(2) << std::endl;
 
         yamoModel.sync();
-
-        std::cout << "Schema" << std::endl
-                  << schema << std::endl
-                  << std::endl
-                  << "Data (Compact mode):" << std::endl
-                  << yamoModel.serializeJson().dump(2) << std::endl
-                  << std::endl
-                  << "Data (DB mode):" << std::endl
-                  << yamoModel.serializeJsonDB().dump(2) << std::endl;
     }
     catch (Exception const &e)
     {
